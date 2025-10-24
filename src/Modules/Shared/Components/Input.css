@@ -1,0 +1,37 @@
+/* Contenedor principal del campo (label, input y error) */
+.input-container {
+  display: flex;          /* Activa Flexbox */
+  flex-direction: column; /* Apila los elementos verticalmente */
+  margin-bottom: 8px;     /* Espacio entre cada campo de formulario */
+}
+
+/* Contenedor que agrupa solo la etiqueta y el input */
+.input-field {
+  display: flex;          /* Activa Flexbox para alinear horizontalmente */
+  align-items: center;    /* Centra la etiqueta y el input verticalmente */
+  margin-bottom: 4px;     /* Pequeño espacio antes del mensaje de error */
+  min-width: 400px;    /*Ancho mínimo para evitar que el input se haga muy pequeño */
+}
+
+.input-field label {
+  width: 100px;           /* Ancho fijo para que todas las etiquetas se alineen */
+  margin-right: 10px;     /* Espacio entre la etiqueta y el campo de texto */
+  text-align: left;       /* Alineación del texto de la etiqueta */
+}
+
+.input-field input {
+  flex-grow: 1;           /* Hace que el input ocupe todo el espacio restante */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.error-message {
+  min-height: 20px;       /* Altura mínima para mantener el espaciado */
+  font-size: 0.8em;
+  color: red;
+  /* El texto del error se alineará con el inicio del input gracias al ancho de la etiqueta */
+  padding-left: 110px; /* (width + margin-right de la etiqueta) */
+  width: 100%;                /* 1. Ocupa el ancho completo del contenedor */
+  box-sizing: border-box;     /* 2. Asegura que el padding se incluya DENTRO de ese 100% */
+}
