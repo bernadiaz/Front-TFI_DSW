@@ -7,8 +7,7 @@
                     <label>{label}</label>
                     <input
                         type={type}
-                        value={value}
-                        onChange={onChange}
+                        {...rest}
                     />
                 </div>
                 {error && <span className="error-message">

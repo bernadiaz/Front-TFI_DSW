@@ -1,59 +1,51 @@
-import { useState } from "react";
-import Input from "../../Shared/Components/Input";'./Input.jsx';
+import Input from "../../Shared/Components/Input";
+import {useForm} from "react-hook-form"; 
+import '../../Shared/Components/Input.css';  
 
 function Login(){
-    const[Username, setUsername] = useState("");
-    const[Password, setPassword] = useState("");
+    const { register, handleSubmit, formState: { errors } } = useForm();
 
-    const[UsernameErrors, setUsernameErrors] = useState("");
-    const[PasswordErrors, setPasswordErrors] = useState("");
-
-    const handleUsernameChange = (e) => {
-        const value = e.target.value;
-        setUsername(value);
-        if(!value){
-            setUsernameErrors("Nombre de usuario requerido");
-        }
-        else{
-            setUsernameErrors("");
-        }
-    };
-    
-    const handlePasswordChange = (e) => {
-        const value = e.target.value;
-        setPassword(value);
-        if(!value){
-            setPasswordErrors("Contraseña requerida");
-        } else if(value.length < 8){
-            setPasswordErrors("La contraseña debe tener al menos 8 caracteres");
-        } else {
-            setPasswordErrors("");
-        }
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-    };  
+    const onSubmit = data => {
+        console.log("Datos enviados: ", data);
+    }
 
     return(
-            <form onSubmit={handleSubmit}>
-                <h2>Inicio de Sesión</h2>
-                <Input
-                    label="Usuario"
-                    type="text"
-                    value={Username}
-                    onChange={handleUsernameChange}
-                    error={UsernameErrors}
-                />
-                <Input
-                    label="Contraseña"
-                    type="password"
-                    value={Password}
-                    onChange={handlePasswordChange}
-                    error={PasswordErrors}
-                />
-                <button type="submit">Iniciar Sesión</button>
-            </form>
+        <form onSubmit={handleSubmit(onSubmit)}>
+            <h2>Inicio de Sesión</h2>
+        <div className="input-container">
+            <div className="input-field">
+              <label>Usuario</label>
+              <input
+                type="text"
+                // "register" se aplica directamente al input
+                {...register("Username", {
+                  required: "Nombre de usuario requerido",
+                })}
+              />
+            </div>
+        </div>
+        {errors.Username && <span className="error-message">{errors.Username.message}</span>}
+        
+        <div className="input-container">
+        <div className="input-field">
+          <label>Contraseña</label>
+          <input
+            type="password"
+            {...register("Password", {
+              required: "Contraseña requerida",
+              minLength: {
+                value: 8,
+                message: "La contraseña debe tener al menos 8 caracteres",
+              },
+            })}
+          />
+        </div>
+      </div>
+
+
+        {errors.Password && <span className="error-message">{errors.Password.message}</span>}
+        <button type="submit">Iniciar Sesión</button>
+        </form>
         );
 }
 export default Login;
