@@ -1,22 +1,36 @@
-export const getProducts = async () => {
+export const getProducts = async ({ pageNumber = 1, pageSize = 5, status = '', searchTerm = '' } = {}) => {
   try {
-    // const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    
+    // Construimos la Query String
+    const params = new URLSearchParams();
+    params.append('pageNumber', pageNumber);
+    params.append('pageSize', pageSize);
+    
+    // Enviamos filtros si existen (El backend deberá estar preparado para recibirlos)
+    if (status && status !== 'all') {
+        // Mapeamos 'active'/'inactive' a lo que espere tu backend (ej. true/false o strings)
+        // Si tu backend espera un bool IsActive, quizás debas enviar 'true'/'false'
+        params.append('status', status); 
+    }
+    if (searchTerm) {
+        params.append('searchTerm', searchTerm);
+    }
 
-    const response = await fetch('/api/products', {
+    const response = await fetch(`/api/products?${params.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        // 'Authorization': `Bearer ${token}` // este endpoint no necesita autorizacion
+        'Authorization': `Bearer ${token}`
       }
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({})); 
+      const errorData = await response.json().catch(() => ({}));
       return { data: null, error: errorData.message || 'Error al obtener los productos.' };
     }
 
     const data = await response.json();
-
     return { data: data, error: null };
 
   } catch (err) {

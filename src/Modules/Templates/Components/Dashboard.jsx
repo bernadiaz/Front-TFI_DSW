@@ -51,7 +51,7 @@ function Dashboard() {
     <div
       className="
         p-4
-        min-h-screen
+        h-screen
         grid
         grid-cols-1
         grid-rows-[auto_1fr]
@@ -137,7 +137,7 @@ function Dashboard() {
       <main
         className="
           p-4
-          overflow-hidden
+          overflow-y-auto
         "
       >
         <div className="h-full">

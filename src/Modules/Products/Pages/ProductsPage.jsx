@@ -1,16 +1,23 @@
 import Card from "../../Shared/Components/Card";
 import Button from "../../Shared/Components/Button";
 import Input from "../../Shared/Components/Input";
-import { getProducts } from "../Services/ProductsService";
+import {getProducts} from "../Services/ProductsService"
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+const ITEMS_PER_PAGE = 3;
 
 function ProductsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
+    
     const [filterStatus, setFilterStatus] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
+    
+    // Estado de Paginación
+    const [currentPage, setCurrentPage] = useState(1);
+
     const navigate = useNavigate();    
 
     useEffect(() => {
@@ -34,8 +41,12 @@ function ProductsPage() {
         fetchProducts();
     }, []);
 
+    // Resetear a la página 1 cuando cambian los filtros
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, searchTerm]);
+
     const filteredProducts = products.filter(product => {
-        // Filtro por Estado (Activo,Inactivo,Todos)
         let matchesStatus = true;
         if (filterStatus === "enabled") {
             matchesStatus = product.isActive === 1 || product.isActive === true;
@@ -43,25 +54,30 @@ function ProductsPage() {
             matchesStatus = product.isActive === 0 || product.isActive === false;
         }
 
-        // Filtro por Buscador (Nombre o SKU)
         let matchesSearch = true;
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             const name = (product.name || "").toLowerCase();
             const sku = (product.sku || "").toLowerCase();
-            // Buscamos si el término está en el nombre O en el SKU
             matchesSearch = name.includes(term) || sku.includes(term);
         }
 
         return matchesStatus && matchesSearch;
     });
 
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+    
+    const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+    
+    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
     const NavigateCreateProduct = () => {
         navigate('/admin/products/create');
     }
 
     return(
-        <div className="flex flex-col gap-4h-full">
+        <div className="flex flex-col gap-4 h-full">
             <Card className="shrink-0">
                 <div className="flex flex-col gap-3">
                     <div className="flex justify-between">
@@ -73,16 +89,19 @@ function ProductsPage() {
                             Crear Producto
                         </Button>
                     </div>
+                    
                     <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[auto_110px]">
                         <div className="flex items-center gap-2 min-w-0">
-                            <input type="text" placeholder="Buscar producto por nombre o SKU" 
-                                className="w-full text-[1.3rem] border border-gray-500 rounded-xs"
+                            <input 
+                                type="text" 
+                                placeholder="Buscar producto por nombre o SKU" 
+                                className="w-full text-[1.3rem] border border-gray-500 rounded-xs px-2"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <Button fullWidth={false} className="text-white">
                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6"><path d="M19.9604 11.4802C19.9604 13.8094 19.0227 15.9176 17.5019 17.4512C16.9332 18.0247 16.2834 18.5173 15.5716 18.9102C14.3594 19.5793 12.9658 19.9604 11.4802 19.9604C6.79672 19.9604 3 16.1637 3 11.4802C3 6.79672 6.79672 3 11.4802 3C16.1637 3 19.9604 6.79672 19.9604 11.4802Z" stroke="#ffffff" strokeWidth="2"/><path d="M18.1553 18.1553L21.8871 21.8871" stroke="#ffffff" strokeWidth="2" strokeLinecap="round"/></svg>
-                             </Button>
+                            </Button>
                         </div>
             
                         <select 
@@ -97,27 +116,48 @@ function ProductsPage() {
                     </div>
                 </div>
             </Card>
-            <div className="mt-4 flex flex-col gap-2 overflow-y-auto h-[calc(100vh-240px)] ">
-                {/* Caso Carga */}
+
+            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-2">
                 {isLoading && <p className="text-center text-gray-500 mt-4">Cargando productos...</p>}
                 
-                {/* Caso Error */}
                 {error && <p className="text-center text-red-500 mt-4">{error}</p>}
 
-                {/* Caso Lista Vacía */}
-                {!isLoading && !error && filteredProducts.length === 0 && (
-                    <p className="text-center text-gray-500 mt-4">No hay productos disponibles.</p>
+                {!isLoading && !error && currentProducts.length === 0 && (
+                    <p className="text-center text-gray-500 mt-4">No se encontraron productos.</p>
                 )}
 
-                {/* Caso Datos Listos */}
-                {filteredProducts.map((product) => (
-                    <Card key={product.productId}> 
+                {currentProducts.map((product) => (
+                    <Card key={product.id || product.productId}> 
                         <h1>{product.sku} - {product.name}</h1> 
                         <p className="text-base">
                             {product.stockQuantity} unidades - {product.isActive ? 'Activo' : 'Inactivo'} - ${product.currentUnitPrice}
                         </p>
                     </Card>
                 ))}
+
+                {!isLoading && filteredProducts.length > 0 && (
+                    <div className="flex justify-center items-center gap-4 mt-4 pb-2">
+                        <button 
+                            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300 transition"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Anterior
+                        </button>
+                        
+                        <span className="font-bold text-gray-700">
+                            Página {currentPage} de {totalPages || 1}
+                        </span>
+
+                        <button 
+                            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300 transition"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
