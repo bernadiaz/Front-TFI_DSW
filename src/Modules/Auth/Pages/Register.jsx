@@ -39,9 +39,9 @@ function Register() {
     const password = watch("password");
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-200">  
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-sm">    
-                <h2 className="text-3xl font-bold text-center text-white mb-4">
+        <div className="min-h-screen flex items-center justify-center bg-gray-300 text-gray-200">  
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 bg-gray-100 p-8 rounded-lg shadow-xl w-full max-w-sm">    
+                <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
                     Registro
                 </h2>
 
@@ -59,6 +59,7 @@ function Register() {
                 />
 
                 <Input
+                    className="w-full"
                     label="Email"
                     type="email"
                     error={errors.email?.message}
@@ -72,9 +73,9 @@ function Register() {
                 />
 
                 <div className="flex flex-col gap-1">
-                    <label className="text-gray-600 text-sm font-medium">Role</label>
+                    <label className="text-gray-900 text-sm font-medium">Role</label>
                     <select
-                        className={`bg-gray-500 w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`bg-gray-100 text-gray-600 w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
                         {...register("role", { required: "Seleccione un rol" })}
                         defaultValue=""
                     >
@@ -107,20 +108,19 @@ function Register() {
                 />
 
                 <div className="flex flex-col gap-3 mt-4">
-                    <button 
+                    <Button 
                         type="submit"
-                        className="w-full bg-blue-700 text-white py-2 rounded-md font-bold hover:bg-purple-300 transition-colors"
                     >
                         Registrar Usuario
-                    </button>
+                    </Button>
 
-                    <button 
+                    <Button
+                        variant="secondary"
                         type="button"
                         onClick={() => navigate('/login')}
-                        className="w-full bg-blue-300 text-gray-700 py-2 rounded-md font-bold hover:bg-gray-300 transition-colors"
                     >
                         Inicio de Sesión
-                    </button>
+                    </Button>
                 </div>
             </form>
             

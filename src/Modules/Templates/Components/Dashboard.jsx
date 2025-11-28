@@ -19,9 +19,9 @@ function Dashboard() {
 
   const getLinkStyles = ({ isActive }) => (
     `
-      pl-4 w-full block  pt-4 pb-4 rounded-4xl transition hover:bg-blue-500
+      pl-4 w-full block  pt-4 pb-4 rounded-4xl transition hover:bg-purple-300
       ${isActive
-      ? 'bg-purple-300 hover:bg-purple-400 '
+      ? 'bg-purple-400 hover:bg-purple-400 '
       : ''
     }
     `
@@ -50,6 +50,7 @@ function Dashboard() {
   return (
     <div
       className="
+        p-4
         min-h-screen
         grid
         grid-cols-1
@@ -58,6 +59,7 @@ function Dashboard() {
         overflow-hidden
 
         sm:grid-cols-[256px_1fr]
+        sm:gap-x-6
       "
     >
       <header
@@ -68,7 +70,7 @@ function Dashboard() {
           p-4
           shadow
           rounded
-          bg-blue-500
+          bg-gray-100
 
           sm:col-span-2
         "
@@ -89,9 +91,9 @@ function Dashboard() {
       <aside
         className={`
           absolute
-          top-0
+          top-5
           bottom-0
-          bg-blue-600
+          bg-gray-100
           w-64
           p-6
           ${openMenu ? 'left-0' : '-left-64'}
@@ -134,7 +136,7 @@ function Dashboard() {
       </aside>
       <main
         className="
-          p-5
+          p-4
           overflow-hidden
         "
       >

@@ -32,13 +32,13 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-200">
+    <div className="min-h-screen flex items-center justify-center bg-gray-300 text-gray-200">
     <form 
       onSubmit={handleSubmit(onValid)}
-      className="flex flex-col gap-4 bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-sm"
+      className="flex flex-col gap-4 bg-gray-100 p-8 rounded-lg shadow-xl w-full max-w-sm"
     >
       
-      <h2 className="text-3xl font-bold text-center text-white mb-4">
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
         Inicio de Sesión
       </h2>
 
@@ -67,7 +67,7 @@ function Login() {
       />
       
       <Button type='submit'>Iniciar Sesión</Button>
-      <Button onClick={() => navigate('/register')}>Registrarse</Button>
+      <Button onClick={() => navigate('/register')} variant='secondary'>Registrarse</Button>
 
       {errorMessage && (
         <p className="text-red-500 text-sm mt-2 text-center">{errorMessage || "Error al conectar con el servidor"}</p>
