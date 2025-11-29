@@ -1,22 +1,15 @@
 // Ya NO importamos './Input.css'
 
-/**
- * Componente Input reutilizable con estilos de Tailwind.
- * * NOTA: Corregí las props. Ahora aceptamos "...rest"
- * para pasar automáticamente 'name', 'onChange', 'onBlur', etc.,
- * desde react-hook-form directamente al <input>.
- */
 function Input({ label, type, error, ...rest }) {
   return (
-    <div className="w-full flex flex-col">
-      
-      <div className="flex items-center mb-1">
+    <div className="w-full flex flex-col mb-4"> 
+      <div className="flex flex-col"> 
         <label 
-          htmlFor={rest.name} // Buena práctica para accesibilidad
+          htmlFor={rest.name}
           className="
-            w-[100px]      /* width: 100px */
-            mr-2.5         /* margin-right: 10px */
-            text-right      /* text-align: left */
+            w-full           
+            mb-1             
+            text-left        
             text-sm font-medium text-gray-900" 
         >
           {label}
@@ -26,12 +19,12 @@ function Input({ label, type, error, ...rest }) {
           id={rest.name}
           type={type}
           className="
-            flex-1        /* flex-grow: 1 */
-            p-2           /* padding: 8px */
-            bg-gray-200 border border-gray-600 rounded-md /* Estilos base */
+            w-full           
+            p-2
+            bg-gray-200 border border-gray-600 rounded-md
             text-gray-900 
             focus:outline-none focus:ring-2 focus:ring-blue-500"
-          {...rest}     /* Aquí se pasan name, onBlur, onChange, ref de react-hook-form */
+          {...rest}
         />
       </div>
       
@@ -39,10 +32,11 @@ function Input({ label, type, error, ...rest }) {
       {error && (
         <span 
           className="
-            h-5           /* min-height: 20px (para mantener espacio) */
-            text-xs        /* font-size: 0.8em */
-            text-red-400   /* color: red */
-            pl-[110px]     /* padding-left: 110px (100px label + 10px margin) */
+            mt-1             /* Un poco de espacio arriba del error */
+            text-xs 
+            text-red-400 
+            pl-[110px] 
+            text-left       /*alinea el texto en el centro*/
             w-full box-border" 
         >
           {error}

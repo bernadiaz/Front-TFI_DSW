@@ -16,7 +16,7 @@ export const loginUser = async (username, password) => {
     
     // CASO 2: ERROR DEL SERVIDOR (Status 400, 500, etc.)
     else {
-      let errorMsg = "Error desconocido"; // Usamos 'let' fuera del if para que persista
+      let errorMsg = "Error desconocido";
       const contentType = response.headers.get("content-type");
 
       if (contentType && contentType.includes("application/json")) {
@@ -26,7 +26,15 @@ export const loginUser = async (username, password) => {
       } else {
         // NO es JSON (ej. Error 500 fatal texto plano)
         const text = await response.text();
-        errorMsg = "Error: " + text;
+        
+        if (text && text.trim().length > 0) {
+          errorMsg = "Error: " + text;
+        } else {
+          errorMsg = `Error ${response.status}: ${response.statusText || "Solicitud fallida"}`;
+        }
+
+
+
       }
       
       // Retornamos el error para que el componente lo maneje

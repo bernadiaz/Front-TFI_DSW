@@ -2,19 +2,21 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../Shared/Components/Card";
 import Button from "../../Shared/Components/Button";
-// Asegúrate de importar el servicio correcto
 import { getOrders } from "../Services/OrdersServices"; 
+
+const ITEMS_PER_PAGE = 2; 
 
 function OrdersPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [orders, setOrders] = useState([]);
     const [error, setError] = useState(null);
     
-    // Estados para filtros
     const [filterStatus, setFilterStatus] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
+
+    const [currentPage, setCurrentPage] = useState(1);
     
-    const navigate = useNavigate();    
+    // const navigate = useNavigate(); // Comentado si no hay router en el entorno, pero lo dejamos si existe
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -22,9 +24,6 @@ function OrdersPage() {
                 setIsLoading(true);
                 const response = await getOrders();
                 
-                // Manejamos si el servicio devuelve array directo o objeto { data, error }
-                // Asumimos que tu getOrders devuelve el array directo según tu código anterior, 
-                // pero aquí lo blindamos por si acaso.
                 let data = [];
                 if (Array.isArray(response)) {
                     data = response;
@@ -46,23 +45,23 @@ function OrdersPage() {
         fetchOrders();
     }, []);
 
-    // --- LÓGICA DE FILTRADO ---
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, searchTerm]);
+
     const filteredOrders = orders.filter(order => {
-        // 1. Filtro por Estado
         let matchesStatus = true;
         if (filterStatus !== "all") {
-            // Compara el estado seleccionado con el estado de la orden
-            // (Asegúrate que en tu DB se guarden como "PENDING", "SHIPPED", etc.)
             matchesStatus = order.status === filterStatus;
         }
 
-        // 2. Filtro por Buscador (Nombre Cliente o ID)
         let matchesSearch = true;
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
-            // Protegemos con || "" por si algún campo viene null
-            const client = (order.clientName || "").toLowerCase();
-            const orderId = (order.id || order.orderId || "").toString().toLowerCase();
+            
+            // CAMBIO PRINCIPAL: Usamos customerName que viene del backend
+            const client = (order.customerName || order.clientName || "").toLowerCase();
+            const orderId = (order.orderId || order.id || "").toString().toLowerCase();
             
             matchesSearch = client.includes(term) || orderId.includes(term);
         }
@@ -70,33 +69,42 @@ function OrdersPage() {
         return matchesStatus && matchesSearch;
     });
 
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+    
+    const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    
+    const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+
     return(
-        <div className="flex flex-col gap-4 h-full">
-            
-            {/* HEADER FIJO */}
-            <div>
+        <div className="flex flex-col gap-3 h-full max-w-4xl mx-auto p-4 w-full">
+
                 <Card>
                     <div className="flex flex-col gap-3">
                         <div className="flex justify-between items-center">
-                            <h1 className="text-2xl font-bold">Orders</h1>
+                            <h1 className="text-2xl font-bold text-gray-800">Órdenes</h1>
                         </div>
                         
                         <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[auto_180px]">
                             <div className="flex items-center gap-2 min-w-0">
-                                <input 
-                                    type="text" 
-                                    placeholder="Buscar por cliente o ID..." 
-                                    className="w-full text-[1.3rem] border border-gray-500 rounded-xs p-1"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                <Button fullWidth={false} className="text-white">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6"><path d="M19.9604 11.4802C19.9604 13.8094 19.0227 15.9176 17.5019 17.4512C16.9332 18.0247 16.2834 18.5173 15.5716 18.9102C14.3594 19.5793 12.9658 19.9604 11.4802 19.9604C6.79672 19.9604 3 16.1637 3 11.4802C3 6.79672 6.79672 3 11.4802 3C16.1637 3 19.9604 6.79672 19.9604 11.4802Z" stroke="#ffffff" strokeWidth="2"/><path d="M18.1553 18.1553L21.8871 21.8871" stroke="#ffffff" strokeWidth="2" strokeLinecap="round"/></svg>
-                                </Button>
+                                <div className="relative w-full">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Buscar por cliente o ID..." 
+                                        className="w-full text-base border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <div className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                 
                             <select 
-                                className="text-[1.1rem] p-2 rounded w-full border border-gray-500"
+                                className="text-base p-2 rounded-lg w-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
                             >
@@ -110,40 +118,52 @@ function OrdersPage() {
                         </div>
                     </div>
                 </Card>
-            </div>
 
-            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-2">
+            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-3">
                 
-                {isLoading && <p className="text-center text-gray-500 mt-4">Cargando órdenes...</p>}
+                {isLoading && (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                )}
                 
-                {error && <p className="text-center text-red-500 mt-4">{error}</p>}
+                {error && <p className="text-center text-red-500 mt-4 bg-red-50 p-3 rounded border border-red-200">{error}</p>}
 
-                {!isLoading && !error && filteredOrders.length === 0 && (
-                    <p className="text-center text-gray-500 mt-4">No se encontraron órdenes.</p>
+                {!isLoading && !error && currentOrders.length === 0 && (
+                    <div className="text-center py-10 bg-white rounded-lg border border-gray-200 shadow-sm">
+                        <p className="text-gray-500 text-lg">No se encontraron órdenes.</p>
+                    </div>
                 )}
 
-                {filteredOrders.map((order) => {
-                    const orderId = order.id || order.orderId;
-                    const client = order.clientName || "Cliente Desconocido";
+                {currentOrders.map((order) => {
+                    // CAMBIO PRINCIPAL: Mapeo robusto de propiedades
+                    const orderId = order.orderId || order.id;
+                    const client = order.customerName || "Cliente Desconocido";
                     const status = order.status || "Sin estado";
-                    const total = order.total || order.totalAmount || 0;
+                    
+                    const rawTotal = order.totalAmount !== undefined ? order.totalAmount : (order.total || 0);
+                    // Usamos un formato simple si Intl falla en algunos entornos antiguos, pero Intl es estandar
+                    const totalFormatted = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(rawTotal);
 
                     return (
-                        <Card key={orderId}> 
-                            <div className="flex justify-between items-center">
+                        <Card key={orderId} className="hover:shadow-md transition-shadow group"> 
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                 <div>
-                                    <h1 className="font-bold text-lg">#{orderId} - {client}</h1> 
-                                    <p className="text-base text-gray-600 font-medium">
-                                        <span>{status}</span> 
-                                    </p>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="font-bold text-lg text-gray-800">#{orderId.toString().replace('ORD-', '')}</h3>
+                                        <span className="text-gray-300">|</span>
+                                        <span className="font-medium text-gray-700">{client}</span>
+                                    </div>
+                                    <div className="flex gap-2 items-center">
+                                        <span className={`text-xs px-2.5 py-0.5 font-semibold`}>
+                                            {status}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-lg">${total}</p>
-                                    {/* Botón Ver detalle (Opcional) */}
+                                <div className="text-right flex flex-col items-end">
                                     <Button 
                                         fullWidth={false} 
-                                        className="bg-purple-100 text-purple-700 hover:bg-purple-200 text-xs px-3 py-1 mt-1 rounded"
-                                        onClick={() => alert(`Ver detalles orden #${orderId}`)}
+                                        onClick={() => alert(`Ver detalles de la orden ${orderId}`)}
                                     >
                                         Ver
                                     </Button>
@@ -152,6 +172,30 @@ function OrdersPage() {
                         </Card>
                     );
                 })}
+
+                {!isLoading && filteredOrders.length > 0 && (
+                    <div className="flex justify-center items-center gap-4 mt-4 pb-8">
+                        <button 
+                            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300 transition"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Anterior
+                        </button>
+                        
+                        <span className="font-bold text-gray-700">
+                            Página {currentPage} de {totalPages || 1}
+                        </span>
+
+                        <button 
+                            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300 transition"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

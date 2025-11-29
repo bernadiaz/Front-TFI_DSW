@@ -77,7 +77,7 @@ function ProductsPage() {
     }
 
     return(
-        <div className="flex flex-col gap-4 h-full">
+        <div className="flex flex-col gap-3 h-full">
             <Card className="shrink-0">
                 <div className="flex flex-col gap-3">
                     <div className="flex justify-between">
