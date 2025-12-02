@@ -20,8 +20,7 @@ export const getProducts = async ({ pageNumber = 1, pageSize = 5, status = '', s
     const response = await fetch(`/api/products?${params.toString()}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 

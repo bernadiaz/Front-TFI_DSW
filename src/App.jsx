@@ -10,21 +10,23 @@ import ProductsPage from './Modules/Products/Pages/ProductsPage';
 import { Outlet } from 'react-router-dom';
 import CreateProduct from './Modules/Products/Pages/CreateProduct';
 import Register from './Modules/Auth/Pages/Register';
+import ProductsCatalogue from './Modules/Products/Pages/ProductsCatalogue';
+import ClientSide from './Modules/Templates/Components/ClientSide';
 
 
 function App() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <><Outlet/></>,
+      element: <ClientSide />,
       children: [
         {
           path: '/',
-          element: <>Listado de productos</>
+          element: < ProductsCatalogue />
         },
         {
           path: '/cart',
-          element: <>Carrito de compras</>
+          element: <>Carrito</>
         },
       ]
     },
