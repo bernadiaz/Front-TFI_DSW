@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import ProductCard from '../Components/ProductCard';
 import { getProducts } from '../Services/ProductsService';
+
 
 const ITEMS_PER_PAGE = 8;
 
@@ -12,11 +13,19 @@ export default function ProductsCatalogue() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const topRef = useRef(null);
 
   // Reiniciar a página 1 si cambia la búsqueda
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (topRef.current) {
+        // 'scrollIntoView' mueve el elemento al tope del contenedor scrolleable (main)
+        topRef.current.scrollIntoView({ block: 'start' });
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     let isMounted = true;
@@ -26,8 +35,6 @@ export default function ProductsCatalogue() {
       setError(null);
       
       try {
-        // 1. Pedimos TODO (1000 items) SIN filtrar búsqueda en el backend.
-        // Enviamos searchTerm: '' para asegurarnos de recibir la lista completa.
         const result = await getProducts({
           pageNumber: 1, 
           pageSize: 1000, 
@@ -41,17 +48,15 @@ export default function ProductsCatalogue() {
           } else {
             const rawItems = result.data.items || (Array.isArray(result.data) ? result.data : []);
             
-            // 2. FILTRADO COMPLETO EN FRONTEND (Estado + Búsqueda)
             const filteredItems = rawItems.filter(p => {
-                // Filtro A: Activo
+                // Filtro 1: Activo
                 const isActive = (p.isActive === true || p.isActive === 1 || p.isActive === 'true');
                 
-                // Filtro B: Búsqueda
+                // Filtro 2: Búsqueda
                 let matchesSearch = true;
                 if (searchTerm) {
                     const term = searchTerm.toLowerCase();
                     const name = (p.name || "").toLowerCase();
-                    // const sku = (p.sku || "").toLowerCase(); // Agrega esto si tu objeto tiene SKU
                     matchesSearch = name.includes(term);
                 }
 
@@ -92,7 +97,7 @@ export default function ProductsCatalogue() {
   };
 
   return (
-    <div className="font-sans text-gray-800 w-full pb-10">
+    <div ref={topRef} className="font-sans text-gray-800 w-full pb-10">
       
       {isLoading && <div className="py-20 text-center text-gray-500 animate-pulse">Cargando catálogo...</div>}
       
