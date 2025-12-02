@@ -23,10 +23,10 @@ function AuthProvider({ children }) {
         }
         localStorage.setItem('authToken', data.token);
         setIsAuthenticated(true);
-        // saveUser(data.user);
+        //saveUser(data.user);
         // user;
         alert("Sesión iniciada correctamente.");
-        return {error: null};
+        return {error: null, user: data.user};
     }
 
     return (

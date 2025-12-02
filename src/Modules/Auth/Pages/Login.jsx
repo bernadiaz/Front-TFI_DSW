@@ -4,28 +4,58 @@ import Input from "../../Shared/Components/Input";
 import Button from "../../Shared/Components/Button";  
 import { useNavigate } from "react-router-dom";
 import useAuth from "../Hooks/useAuth";
+import { parseJwt } from "../Services/authServices";
 
 function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm();
-
   const navigate = useNavigate();
-
   const [errorMessage, setErrorMessage] = useState('');
-
   const { signin } = useAuth();
 
   const onValid = async (FormData) => { 
-    try{
-      const {error} = await signin(FormData.Username, FormData.Password);
-
-      if (error){
-        setErrorMessage(error);
+    try {
+      const response = await signin(FormData.Username, FormData.Password);
+      
+      if (response.error) {
+        setErrorMessage(response.error);
         return;
       }
       
-      navigate("/admin/home");
+      // Intentamos obtener el usuario de la respuesta o del token decodificado
+      let userRole = null;
 
-    } catch (error){
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        const decodedToken = parseJwt(token);
+        console.log("Token decodificado:", decodedToken); // Mira esto en consola
+          
+        if (decodedToken) {
+          // Busca el rol en las propiedades comunes del token
+          userRole = decodedToken.role || 
+                     decodedToken.headers?.role || 
+                     decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || // Común en .NET
+                     decodedToken.roles;
+        }
+      }
+      
+
+      console.log("Rol detectado:", userRole);
+
+      // --- VERIFICACIÓN DE ROL ---
+      const isAdmin = (role) => {
+        if (!role) return false;
+        if (typeof role === 'string') return role.toUpperCase() === 'ADMIN';
+        if (Array.isArray(role)) return role.some(r => (typeof r === 'string' ? r.toUpperCase() === 'ADMIN' : r.name === 'ADMIN'));
+        return false;
+      };
+
+      if (isAdmin(userRole)) {
+        navigate("/admin/home");
+      } else {
+        navigate("/"); 
+      }
+
+    } catch (error) {
       console.log(error);
       setErrorMessage("Error inesperado. Comuníquese con el administrador.");
     }
@@ -45,9 +75,7 @@ function Login() {
       <Input
         label="Usuario"
         type="text"
-        // Pasamos el error si existe
         error={errors.Username?.message}
-        // Pasamos todas las props de react-hook-form (name, onBlur, onChange, ref)
         {...register("Username", {
           required: "Nombre de usuario requerido",
         })}

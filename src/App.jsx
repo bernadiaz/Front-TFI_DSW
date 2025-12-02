@@ -40,7 +40,7 @@ function App() {
     },
     {
       path: '/admin',
-      element: (<ProtectedRoute>
+      element: (<ProtectedRoute requiredRole="ADMIN">
         <Dashboard />
       </ProtectedRoute>),
       children: [
