@@ -88,7 +88,7 @@ export default function ProductsCatalogue() {
     if (quantity < 1) return;
     const newItem = { ...product, quantity };
     const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
-    const idx = currentCart.findIndex(i => i.id === product.id);
+    const idx = currentCart.findIndex(i => i.id === product.productId);
     const updatedCart = idx >= 0 
       ? currentCart.map((item, i) => i === idx ? { ...item, quantity: item.quantity + quantity } : item)
       : [...currentCart, newItem];
