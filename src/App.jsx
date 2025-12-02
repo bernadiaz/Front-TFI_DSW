@@ -12,6 +12,7 @@ import CreateProduct from './Modules/Products/Pages/CreateProduct';
 import Register from './Modules/Auth/Pages/Register';
 import ProductsCatalogue from './Modules/Products/Pages/ProductsCatalogue';
 import ClientSide from './Modules/Templates/Components/ClientSide';
+import ShoppingCart from './Modules/Cart/Pages/ShoppingCart';
 
 
 function App() {
@@ -26,7 +27,7 @@ function App() {
         },
         {
           path: '/cart',
-          element: <>Carrito</>
+          element: <ShoppingCart />
         },
       ]
     },

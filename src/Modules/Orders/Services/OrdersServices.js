@@ -19,3 +19,18 @@ export const getOrders = async () => {
 
     return await response.json();
 };
+export const createOrder = async (orderData, token) => {
+    try {
+        const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
+      });
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
+};
