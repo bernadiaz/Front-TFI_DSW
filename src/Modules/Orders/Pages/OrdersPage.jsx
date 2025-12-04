@@ -4,7 +4,7 @@ import Card from "../../Shared/Components/Card";
 import Button from "../../Shared/Components/Button";
 import { getOrders } from "../Services/OrdersServices"; 
 
-const ITEMS_PER_PAGE = 2; 
+const ITEMS_PER_PAGE = 3; 
 
 function OrdersPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -77,15 +77,15 @@ function OrdersPage() {
     const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
 
     return(
-        <div className="flex flex-col gap-3 h-full max-w-4xl mx-auto p-4 w-full">
+        <div className="flex flex-col gap-3 h-full">
 
                 <Card>
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-center">
                             <h1 className="text-2xl font-bold text-gray-800">Órdenes</h1>
                         </div>
                         
-                        <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[auto_180px]">
+                        <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[auto_250px]">
                             <div className="flex items-center gap-2 min-w-0">
                                 <div className="relative w-full">
                                     <input 
@@ -119,7 +119,7 @@ function OrdersPage() {
                     </div>
                 </Card>
 
-            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-3">
+            <div className="flex-1 overflow-hidden min-h-0 flex flex-col gap-3">
                 
                 {isLoading && (
                     <div className="flex justify-center py-10">
@@ -150,12 +150,12 @@ function OrdersPage() {
                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="font-bold text-lg text-gray-800">#{orderId.toString().replace('ORD-', '')}</h3>
-                                        <span className="text-gray-300">|</span>
-                                        <span className="font-medium text-gray-700">{client}</span>
+                                        <h3 className="font-bold ">#{orderId.toString().replace('ORD-', '')}</h3>
+                                        <span className="text-gray-900">-</span>
+                                        <span className="font-medium ">{client}</span>
                                     </div>
                                     <div className="flex gap-2 items-center">
-                                        <span className={`text-xs px-2.5 py-0.5 font-semibold`}>
+                                        <span className={`text-xs px-2.5 py-1.5`}>
                                             {status}
                                         </span>
                                     </div>
@@ -174,7 +174,7 @@ function OrdersPage() {
                 })}
 
                 {!isLoading && filteredOrders.length > 0 && (
-                    <div className="flex justify-center items-center gap-4 mt-4 pb-8">
+                    <div className="mt-auto flex justify-center items-center gap-4">
                         <button 
                             className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300 transition"
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}

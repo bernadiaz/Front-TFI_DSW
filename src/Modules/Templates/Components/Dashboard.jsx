@@ -91,7 +91,7 @@ function Dashboard() {
       <aside
         className={`
           absolute
-          top-5
+          top-0
           bottom-0
           bg-gray-100
           w-64
@@ -102,7 +102,9 @@ function Dashboard() {
           flex
           flex-col
           justify-between
-
+          z-50
+          
+          sm:top-5
           sm:relative
           sm:left-0
         `}
@@ -138,9 +140,10 @@ function Dashboard() {
         className="
           p-4
           overflow-y-auto
+          flex flex-col
         "
       >
-        <div className="h-full">
+        <div className="h-full w-full">
           <Outlet />
         </div>
         

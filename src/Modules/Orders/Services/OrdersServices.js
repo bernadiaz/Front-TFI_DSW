@@ -19,6 +19,7 @@ export const getOrders = async () => {
 
     return await response.json();
 };
+
 export const createOrder = async (orderData, token) => {
     try {
         const response = await fetch('/api/orders', {
@@ -29,7 +30,7 @@ export const createOrder = async (orderData, token) => {
         },
         body: JSON.stringify(orderData)
       });
-        return await response.json();
+        return await response;
     } catch (error) {
         throw error;
     }

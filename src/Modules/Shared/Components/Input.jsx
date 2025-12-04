@@ -35,8 +35,8 @@ function Input({ label, type, error, ...rest }) {
             mt-1             /* Un poco de espacio arriba del error */
             text-xs 
             text-red-400 
-            pl-[110px] 
-            text-left       /*alinea el texto en el centro*/
+            
+            text-left       
             w-full box-border" 
         >
           {error}

@@ -22,7 +22,9 @@ function Register() {
             username: data.username, 
             email: data.email,
             password: data.password,
-            role: data.role 
+            role: data.role,
+            name: data.name,
+            phoneNumber: data.phoneNumber
         });
 
         setIsSubmitting(false);
@@ -52,6 +54,14 @@ function Register() {
                 )}
 
                 <Input
+                    label="Nombre Completo"
+                    type="text"
+                    placeholder="Juan Pérez"
+                    error={errors.name?.message}
+                    {...register("name", { required: "El nombre es requerido" })}
+                />
+
+                <Input
                     label="Usuario"
                     type="text"
                     error={errors.username?.message}
@@ -59,7 +69,7 @@ function Register() {
                 />
 
                 <Input
-                    className="w-full"
+                    className="w-full bg-gray-200 border border-gray-600"
                     label="Email"
                     type="email"
                     error={errors.email?.message}
@@ -72,8 +82,19 @@ function Register() {
                     })}
                 />
 
+                <Input
+                    label="Teléfono"
+                    type="tel" // Tipo 'tel' para teclados móviles
+                    placeholder="381..."
+                    error={errors.phoneNumber?.message}
+                    {...register("phoneNumber", { 
+                        required: "El teléfono es requerido",
+                        minLength: { value: 6, message: "Mínimo 6 números" }
+                    })}
+                />
+
                 <div className="flex flex-col gap-1">
-                    <label className="text-gray-900 text-sm font-medium">Role</label>
+                    <label className="text-gray-900 text-sm font-medium">Rol</label>
                     <select
                         className={`bg-gray-100 text-gray-600 w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
                         {...register("role", { required: "Seleccione un rol" })}

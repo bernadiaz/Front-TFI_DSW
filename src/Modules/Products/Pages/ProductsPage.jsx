@@ -24,7 +24,7 @@ function ProductsPage() {
         const fetchProducts = async () => {
             try {
                 setIsLoading(true);
-                const response = await getProducts();
+                const response = await getProducts({ pageSize: 1000 });
                 
                 if (response.error) {
                     setError(response.error);
@@ -82,7 +82,7 @@ function ProductsPage() {
                 <div className="flex flex-col gap-3">
                     <div className="flex justify-between">
                         <h1 className="text-2xl font-bold">Products</h1>
-                        <button className="sm:hidden flex items-center justify-center rounded-2xl h-11 w-11 text-gray-600 hover:text-gray-800 transition-colors">            
+                        <button onClick={NavigateCreateProduct} className="sm:hidden flex items-center justify-center rounded-2xl h-11 w-11 text-gray-600 hover:text-gray-800 transition-colors">            
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 448" className="w-6 h-6 fill-current"><path d="M224 0C99.904 0 0 99.904 0 224s99.904 224 224 224 224-99.904 224-224S348.096 0 224 0zm0 416c-105.87 0-192-86.13-192-192S118.13 32 224 32s192 86.13 192 192-86.13 192-192 192zm-32-224H96v64h96v96h64v-96h96v-64h-96V96h-64v96z"/></svg>
                         </button>
                         <Button fullWidth={false} className="hidden sm:block rounded-md" onClick={NavigateCreateProduct}>
@@ -90,22 +90,27 @@ function ProductsPage() {
                         </Button>
                     </div>
                     
-                    <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[auto_110px]">
-                        <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex flex-col gap-5 sm:grid sm:grid-cols-[auto_250px]">
+                        <div className="relative w-full">
                             <input 
                                 type="text" 
                                 placeholder="Buscar producto por nombre o SKU" 
-                                className="w-full text-[1.3rem] border border-gray-500 rounded-xs px-2"
+                                className="w-full text-base border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                            <Button fullWidth={false} className="text-white">
+                            <div className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                            </div>
+                            {/* <Button fullWidth={false} className="text-white">
                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6"><path d="M19.9604 11.4802C19.9604 13.8094 19.0227 15.9176 17.5019 17.4512C16.9332 18.0247 16.2834 18.5173 15.5716 18.9102C14.3594 19.5793 12.9658 19.9604 11.4802 19.9604C6.79672 19.9604 3 16.1637 3 11.4802C3 6.79672 6.79672 3 11.4802 3C16.1637 3 19.9604 6.79672 19.9604 11.4802Z" stroke="#ffffff" strokeWidth="2"/><path d="M18.1553 18.1553L21.8871 21.8871" stroke="#ffffff" strokeWidth="2" strokeLinecap="round"/></svg>
-                            </Button>
+                            </Button> */} 
                         </div>
             
                         <select 
-                            className="text-[1.3rem] p-2 rounded w-full border border-gray-500"
+                            className="text-base p-2 rounded-lg w-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                         >
@@ -117,7 +122,7 @@ function ProductsPage() {
                 </div>
             </Card>
 
-            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-2">
+            <div className="flex-1 overflow-hidden min-h-0 flex flex-col gap-2 pr-2">
                 {isLoading && <p className="text-center text-gray-500 mt-4">Cargando productos...</p>}
                 
                 {error && <p className="text-center text-red-500 mt-4">{error}</p>}
@@ -128,7 +133,7 @@ function ProductsPage() {
 
                 {currentProducts.map((product) => (
                     <Card key={product.id || product.productId}> 
-                        <h1>{product.sku} - {product.name}</h1> 
+                        <h1 className="font-semibold">{product.sku} - {product.name}</h1> 
                         <p className="text-base">
                             {product.stockQuantity} unidades - {product.isActive ? 'Activo' : 'Inactivo'} - ${product.currentUnitPrice}
                         </p>

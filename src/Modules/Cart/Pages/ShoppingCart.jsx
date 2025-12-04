@@ -1,23 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Minus, Plus, ShoppingBag } from 'lucide-react';
-import Button from '../../Shared/Components/Button.jsx';
-import {createOrder} from '../../Orders/Services/OrdersServices.js';
-import noimage from '../../../Assets/noimage.svg';
+import { useForm } from "react-hook-form"; 
+import { Trash2, Minus, Plus, ShoppingBag, X, Mail, User, Lock } from 'lucide-react';
 
+// Componentes y Servicios
+import Button from '../../Shared/Components/Button.jsx';
+import Input from '../../Shared/Components/Input.jsx';
+import { createOrder } from '../../Orders/Services/OrdersServices.js';
+import { parseJwt } from '../../Auth/Services/authServices.js';
+import { registerUser } from '../../Auth/Services/authServices.js'; // Mantenemos registro directo o podrías usar un hook si existe
+import useAuth from '../../Auth/Hooks/useAuth'; // <--- Asegúrate que la ruta sea correcta a tu hook
+import SelectionModal from '../../Auth/Components/SelectionModal.jsx';
+import LoginModal from '../../Auth/Components/LoginModal.jsx';
+import RegisterModal from '../../Auth/Components/RegisterModal.jsx';
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const { signin } = useAuth(); // <--- Usamos el hook de autenticación
+
   const [cartItems, setCartItems] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // 1. Cargar carrito al montar el componente
+  // Estados para Modals
+  const [showAuthSelection, setShowAuthSelection] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  
+  // Estado para error general (del servidor)
+  const [serverError, setServerError] = useState(null);
+
+  // 1. Cargar carrito
   useEffect(() => {
     const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
     setCartItems(savedCart);
   }, []);
 
-  // 2. Guardar cambios en LocalStorage
+  // 2. Guardar cambios
   const updateCart = (newCart) => {
     setCartItems(newCart);
     localStorage.setItem('cart', JSON.stringify(newCart));
@@ -42,7 +60,7 @@ export default function CartPage() {
   };
 
   const removeItem = (id) => {
-    const newCart = cartItems.filter(item => item.productId !== id);
+    const newCart = cartItems.filter(item => item.productId !== id && item.id !== id);
     updateCart(newCart);
   };
 
@@ -50,55 +68,86 @@ export default function CartPage() {
   const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cartItems.reduce((acc, item) => acc + (parseFloat(item.currentUnitPrice) * item.quantity), 0);
 
-  // --- CHECKOUT ---
-  const handleCheckout = async () => {
-    if (cartItems.length === 0) return;
-
-    const token = localStorage.getItem('authToken');
-
-    // 1. Validar Sesión: Si no hay token, redirigir al login
-    if (!token) {
-        alert("Debe iniciar sesión para completar la compra.");
-        navigate('/login', {state: { from: '/cart' } });
-        return;
-    }
-
+  // --- LÓGICA DE PROCESAMIENTO DE ORDEN ---
+  const processOrder = async (token) => {
     setIsProcessing(true);
-
     try {
-      // 2. Preparar Payload (Ajusta la estructura según tu DTO de Backend)
-      const orderData = {
-        items: cartItems.map(item => ({ 
-            productId: item.id, 
-            quantity: item.quantity,
-            price: item.currentUnitPrice
-        })),
-        total: totalPrice
-      };
+      const decodedToken = parseJwt(token);
+      console.log("🔍 Token Nuevo:", decodedToken); 
 
-      // 3. Llamada al Backend
-      const response = await createOrder(orderData, token);
+      if (!decodedToken) throw new Error("Token inválido");
 
-      if (!response.ok) {
-        throw new Error('Error al procesar la orden');
+      // Buscamos el ID en las propiedades estándar donde .NET lo suele poner
+      const userId = decodedToken["uid"] || 
+                     decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+      // Validación crítica
+      if (!userId) {
+          throw new Error("El token no contiene el ID del usuario (claims: nameidentifier/uid). Revisa el Backend.");
       }
 
-      // 4. Éxito
-      localStorage.removeItem('cart'); // Limpiar storage
-      setCartItems([]); // Limpiar estado
+      console.log("✅ ID User encontrado:", userId);
+
+      const orderData = {
+        customerId: userId.toString(), // Ahora sí enviará el GUID
+        shippingAddress: "Dirección predeterminada", 
+        billingAddress: "Dirección predeterminada",
+        orderItems: cartItems.map(item => ({
+            productId: (item.productId || item.id).toString(),
+            quantity: parseInt(item.quantity)
+        }))
+      };
+
+      // ... (El resto de la función sigue igual: llamada a createOrder, manejo de errores, etc.)
+      const response = await createOrder(orderData, token);
+      
+      if (!response.ok) {
+         // ... tu manejo de errores existente ...
+         const errorText = await response.text();
+         throw new Error("Error del servidor: " + errorText);
+      }
+
+      localStorage.removeItem('cart');
+      setCartItems([]);
       alert("¡Compra realizada con éxito!");
-      navigate('/'); // Volver al catálogo
 
     } catch (error) {
       console.error(error);
-      alert("Hubo un error al procesar tu compra. Por favor intenta nuevamente.");
+      alert(error.message);
+      if (error.message.includes("Backend")) {
+          // Si falta el ID, forzamos logout para que genere token nuevo
+          localStorage.removeItem('authToken');
+          setShowAuthSelection(true);
+      }
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // --- HANDLER INICIAL ---
+  const handleCheckoutClick = () => {
+    if (cartItems.length === 0) return;
+    const token = localStorage.getItem('authToken');
+    
+    if (token) {
+        processOrder(token);
+    } else {
+        setShowAuthSelection(true);
+    }
+  };
+
+  // --- MANEJO DE CIERRE DE MODALES ---
+  // Esta función se pasa a los modales para que al terminar exitosamente,
+  // el carrito continúe con el proceso de compra.
+  const handleAuthSuccess = (token) => {
+      // Los modales se cierran solos por su propiedad onClose, 
+      // aquí solo nos encargamos de la lógica de negocio del carrito.
+      processOrder(token);
+  };
+
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-gray-800">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-gray-800 relative">
       
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-6 flex items-center gap-2">
@@ -114,22 +163,18 @@ export default function CartPage() {
         <div className="lg:col-span-2 flex flex-col gap-4">
           {cartItems.length === 0 ? (
             <div className="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
-              {/* <ShoppingBag className="w-16 h-16 mx-auto text-gray-300 mb-4" /> */}
               <h2 className="text-xl font-medium text-gray-600">Tu carrito está vacío</h2>
-              <p className="text-gray-400 mb-6">¡Agrega algunos productos!</p>
-              <Button onClick={() => navigate('/')} fullWidth={false}>
+              <Button onClick={() => navigate('/')} fullWidth={false} className="mt-4">
                 Ir a Productos
               </Button>
             </div>
           ) : (
             cartItems.map((item) => (
               <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                {/* Imagen */}
-                <div className="w-24 h-24 bg-gray-200 rounded-lg shrink-0 flex items-center justify-center overflow-hidden">
-                   <img src={noimage} alt="imagen del prod" className="h-full w-full object-contain"/>
+                <div className="w-24 h-24 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
+                   <ShoppingBag className="text-gray-400 w-8 h-8" />
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 w-full">
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{item.name}</h3>
                   <div className="text-sm text-gray-500 space-y-1">
@@ -138,7 +183,6 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* Controles */}
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
                   <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
                     <button onClick={() => decreaseQty(item.id)} className="p-1 hover:bg-gray-200 rounded text-gray-600">
@@ -150,12 +194,8 @@ export default function CartPage() {
                     </button>
                   </div>
                   
-                  <button 
-                    onClick={() => removeItem(item.productId)}
-                    className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                  >
+                  <button onClick={() => removeItem(item.productId || item.id)} className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-2 rounded-lg text-sm font-medium">
                     <Trash2 size={16} />
-                    <span className="hidden sm:inline">Borrar</span>
                   </button>
                 </div>
               </div>
@@ -180,18 +220,43 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Button 
-                onClick={handleCheckout} 
-                disabled={isProcessing}
-                className="w-full py-3 text-lg shadow-purple-200 shadow-lg"
-              >
+              <Button onClick={handleCheckoutClick} disabled={isProcessing} fullWidth={true} className="py-3 text-lg">
                 {isProcessing ? 'Procesando...' : 'Finalizar Compra'}
               </Button>
             </div>
           </div>
         )}
-
       </div>
+
+      {/* --- MODALS --- */}
+      
+      {/* 1. Modal Selección */}
+      {showAuthSelection && (
+        <SelectionModal 
+              onClose={() => setShowAuthSelection(false)}
+              onLoginClick={() => { setShowAuthSelection(false); setShowLoginModal(true); }}
+              onRegisterClick={() => { setShowAuthSelection(false); setShowRegisterModal(true); }}
+          />
+      )}
+
+      {/* 2. Modal Login (REFACTORIZADO CON REACT-HOOK-FORM) */}
+      {showLoginModal && (
+        <LoginModal 
+              onClose={() => setShowLoginModal(false)}
+              onSwitchToRegister={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
+              onSuccess={handleAuthSuccess}
+        />
+      )}
+
+      {/* 3. Modal Registro (REFACTORIZADO CON REACT-HOOK-FORM) */}
+      {showRegisterModal && (
+        <RegisterModal 
+              onClose={() => setShowRegisterModal(false)}
+              onSwitchToLogin={() => { setShowRegisterModal(false); setShowLoginModal(true); }}
+              onSuccess={handleAuthSuccess}
+          />
+      )}
+
     </div>
   );
 }

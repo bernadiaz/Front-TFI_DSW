@@ -40,7 +40,7 @@ function CreateProduct() {
 
     return (
         <Card className="bg-gray-700">
-            <div>
+            <div className="h full overflow-y-auto">
                 <h2 className="text-2xl font-bold mb-6">Crear Producto</h2>
                 
                 {submitError && (
