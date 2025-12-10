@@ -23,16 +23,8 @@ function ProtectedRoute({ children, requiredRole }) {
 
         const currentRole = typeof userRole === 'string' ? userRole.toUpperCase() : '';
         
-        let hasPermission = false;
+        let hasPermission = currentRole === requiredRole.toUpperCase();
         
-        if (Array.isArray(userRole)) {
-           hasPermission = userRole.some(r => 
-               (typeof r === 'string' ? r.toUpperCase() : r.name?.toUpperCase()) === requiredRole.toUpperCase()
-           );
-        } else {
-           hasPermission = currentRole === requiredRole.toUpperCase();
-        }
-
         if (!hasPermission) {
             alert(`Acceso denegado: Se requiere ${requiredRole} pero el usuario es ${currentRole}`);
             return <Navigate to="/login" replace />;

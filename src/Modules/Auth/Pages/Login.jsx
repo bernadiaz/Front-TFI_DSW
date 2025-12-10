@@ -45,7 +45,6 @@ function Login() {
       const isAdmin = (role) => {
         if (!role) return false;
         if (typeof role === 'string') return role.toUpperCase() === 'ADMIN';
-        if (Array.isArray(role)) return role.some(r => (typeof r === 'string' ? r.toUpperCase() === 'ADMIN' : r.name === 'ADMIN'));
         return false;
       };
 
